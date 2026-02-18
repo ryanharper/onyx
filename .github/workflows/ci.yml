@@ -38,10 +38,11 @@ jobs:
       - name: Run Tests
         run: cargo test
 
+      - name: Install tarpaulin
+        uses: taiki-e/install-action@cargo-tarpaulin
+
       - name: Run Test Coverage
-        uses: xd009642/tarpaulin-action@v1
-        with:
-          args: '--ignore-tests --out xml'
+        run: cargo tarpaulin --ignore-tests --out xml
 
       - name: Run Clippy
         run: cargo clippy -- -D warnings
