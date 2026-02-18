@@ -1,6 +1,6 @@
 [package]
 name = "yt-frontend"
-version = "0.1.0"
+version = "0.1.1-alpha"
 edition = "2021"
 
 [dependencies]
@@ -30,7 +30,7 @@ codegen-units = 1
 name = "OnyxDownloader"
 identifier = "com.onyx.yt-frontend"
 icon = ["icon.png"]
-version = "0.1.0"
+version = "0.1.1-alpha"
 copyright = "Copyright 2026 Onyx"
 category = "public.app-category.utilities"
 short_description = "A modern YouTube downloader and player"
