@@ -1,0 +1,42 @@
+[package]
+name = "yt-frontend"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+iced = { version = "0.14", features = ["tokio", "debug", "advanced", "svg", "canvas", "image"] }
+tokio = { version = "1.0", features = ["full"] }
+directories = "5.0"
+regex = "1.10"
+rfd = "0.13"
+palette = "0.7"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls", "blocking"] }
+futures = "0.3"
+which = "6.0"
+bytes = "1.5"
+urlencoding = "2.1"
+iced_video_player = { git = "https://github.com/jazzfool/iced_video_player", branch = "master" }
+lofty = "0.19"
+
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
+
+[package.metadata.bundle]
+name = "OnyxDownloader"
+identifier = "com.onyx.yt-frontend"
+icon = ["icon.png"]
+version = "0.1.0"
+copyright = "Copyright 2026 Onyx"
+category = "public.app-category.utilities"
+short_description = "A modern YouTube downloader and player"
+long_description = """
+Onyx Downloader allows you to download videos and audio from YouTube with ease and style.
+Supports various qualities, formats, and embedding metadata.
+"""
+
+

@@ -1,0 +1,3 @@
+[alias]
+bundle-linux = "run --bin bundle_linux"
+bundle-mac = "run --bin bundle_macos"
