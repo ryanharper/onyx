@@ -1,0 +1,49 @@
+app-id: com.onyx.yt-frontend
+runtime: org.freedesktop.Platform
+runtime-version: '25.08'
+sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
+build-options:
+  append-path: /usr/lib/sdk/rust-stable/bin
+  build-args:
+    - --share=network
+  env:
+    CARGO_HOME: /run/build/yt-frontend/cargo
+command: yt-frontend
+finish-args:
+  # Network access for downloading videos and yt-dlp/ffmpeg updates
+  - --share=network
+  # Windowing system
+  - --socket=fallback-x11
+  - --socket=wayland
+  # Audio playback
+  - --socket=pulseaudio
+  # Filesystem access: Allow saving to Downloads
+  - --filesystem=xdg-download
+  # Filesystem access: Allow saving to Home directory (common for users)
+  - --filesystem=home
+  # Hardware acceleration
+  - --device=dri
+  # Allow access to XDG config/data directories (where we store yt-dlp)
+  - --persist=.local/share/yt-frontend
+  - --persist=.config/yt-frontend
+
+modules:
+  # Main Application
+  - name: yt-frontend
+    buildsystem: simple
+    build-commands:
+      - cargo build --release
+      - install -Dm755 target/release/yt-frontend /app/bin/yt-frontend
+      - install -Dm644 icon.png /app/share/icons/hicolor/128x128/apps/com.onyx.yt-frontend.png
+      - install -Dm644 com.onyx.yt-frontend.desktop /app/share/applications/com.onyx.yt-frontend.desktop
+    sources:
+      - type: dir
+        path: .
+      - type: file
+        path: com.onyx.yt-frontend.desktop
+    build-options:
+       env:
+         # Ensure cargo finds ssl
+         OPENSSL_NO_VENDOR: "1"
