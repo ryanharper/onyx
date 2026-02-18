@@ -1,25 +1,18 @@
 use iced::widget::{button, canvas, checkbox, column, container, image, pick_list, row, scrollable, stack, text, text_input, slider, Space, responsive, mouse_area, toggler};
 use iced::{mouse, Color, Element, Length, Point, Rectangle, Subscription, Theme, Size, Task};
-use iced::alignment;
 use std::path::{Path, PathBuf};
 use tokio::io::{AsyncBufReadExt, BufReader, AsyncWriteExt};
 use std::process::Stdio;
 use regex::Regex;
 use std::time::Instant;
 use iced::futures::SinkExt;
-#[cfg(unix)]
-use std::os::unix::fs::PermissionsExt;
-use serde::{Deserialize, Serialize};
 use directories::ProjectDirs;
-use std::fs;
-use std::io::Write;
 use lofty::prelude::*;
 use lofty::tag::Tag;
 use lofty::picture::{Picture, PictureType, MimeType};
 use lofty::config::WriteOptions;
 
 use iced_video_player::Video;
-use iced::advanced::Widget;
 
 
 
@@ -37,6 +30,7 @@ pub fn main() -> iced::Result {
     .run()
 }
 
+#[allow(dead_code)]
 fn load_icon() -> Option<iced::window::Icon> {
     // For now, return None - icon loading can be added later with proper dependencies
     // The icon.png file exists but we need to handle it differently
@@ -498,8 +492,7 @@ impl OnyxApp {
                 // Start downloads for all ready items (max 20 parallel)
                 let ready_items: Vec<_> = self.download_queue.iter()
                     .filter(|item| matches!(item.status, QueueStatus::Ready))
-                    .take(20)
-                    .map(|item| item.clone())
+                    .take(20).cloned()
                     .collect();
                 
                 let commands: Vec<_> = ready_items.iter().map(|item| {
@@ -809,8 +802,8 @@ impl OnyxApp {
             }
             Message::UpdateCropDrag(p) => {
                 if let Some(start) = self.crop_drag_start {
-                    let x = start.x.min(p.x).max(0.0).min(1.0);
-                    let y = start.y.min(p.y).max(0.0).min(1.0);
+                    let x = start.x.min(p.x).clamp(0.0, 1.0);
+                    let y = start.y.min(p.y).clamp(0.0, 1.0);
                     let width = (start.x - p.x).abs().min(1.0 - x); // Clamp width
                     let height = (start.y - p.y).abs().min(1.0 - y); // Clamp height
                     
@@ -964,7 +957,7 @@ impl OnyxApp {
             
         let title = column![
             text("ONYX").size(30).font(iced::Font { weight: iced::font::Weight::Bold, ..Default::default() }),
-            text("Downloader").size(14).style(|_| text::Style { color: Some(Color::from_rgb(0.7,0.7,0.7)), ..Default::default() })
+            text("Downloader").size(14).style(|_| text::Style { color: Some(Color::from_rgb(0.7,0.7,0.7)) })
         ];
         
         let theme_btn = button(text(if self.theme == AppTheme::Default { "🎨" } else { "☀️" }).size(20))
@@ -980,7 +973,7 @@ impl OnyxApp {
             // Status pill
              container(row![
                  text(if self.dependencies_ok { "✓ SYSTEM READY" } else { "⚠ MISSING DEPS" }).size(12)
-                     .style(|_| text::Style { color: Some(if self.dependencies_ok { Color::from_rgb(0.4, 1.0, 0.4) } else { Color::from_rgb(1.0, 0.4, 0.4) }), ..Default::default() }),
+                     .style(|_| text::Style { color: Some(if self.dependencies_ok { Color::from_rgb(0.4, 1.0, 0.4) } else { Color::from_rgb(1.0, 0.4, 0.4) }) }),
              ].align_y(iced::alignment::Vertical::Center))
              .padding([6, 12])
              .style(move |_| container::Style {
@@ -1229,7 +1222,7 @@ impl OnyxApp {
              .into()
         } else {
              // Stylish Placeholder
-             container(text("No Image").size(20).style(|_| text::Style { color: Some(Color::from_rgb(0.5, 0.5, 0.5)), ..Default::default() }))
+             container(text("No Image").size(20).style(|_| text::Style { color: Some(Color::from_rgb(0.5, 0.5, 0.5)) }))
                 .width(Length::Fill)
                 .height(Length::Fixed(180.0))
                 .center_x(Length::Fill)
@@ -1242,7 +1235,7 @@ impl OnyxApp {
         let play_overlay = container(
             text("▶")
                 .size(50)
-                .style(|_| text::Style { color: Some(Color::WHITE.into()), ..Default::default() })
+                .style(|_| text::Style { color: Some(Color::WHITE) })
         )
         .center_x(Length::Fill)
         .center_y(Length::Fill);
@@ -1259,9 +1252,9 @@ impl OnyxApp {
         .on_press(Message::OpenVideoPlayer(video.url.clone(), video.title.clone(), duration_secs));
         
         // Info Section
-        let title = text(&video.title).size(16).font(iced::Font { weight: iced::font::Weight::Bold, ..Default::default() }).style(|_| text::Style { color: Some(Color::WHITE), ..Default::default() });
-        let channel = text(&video.channel).size(12).style(|_| text::Style { color: Some(Color::from_rgb(0.9, 0.9, 1.0)), ..Default::default() });
-        let details = text(format!("👁 {} • ⏱ {}", video.views, video.duration)).size(12).style(|_| text::Style { color: Some(Color::from_rgb(0.7, 0.7, 0.7)), ..Default::default() });
+        let title = text(&video.title).size(16).font(iced::Font { weight: iced::font::Weight::Bold, ..Default::default() }).style(|_| text::Style { color: Some(Color::WHITE) });
+        let channel = text(&video.channel).size(12).style(|_| text::Style { color: Some(Color::from_rgb(0.9, 0.9, 1.0)) });
+        let details = text(format!("👁 {} • ⏱ {}", video.views, video.duration)).size(12).style(|_| text::Style { color: Some(Color::from_rgb(0.7, 0.7, 0.7)) });
         
         let add_btn = button(
              container(
@@ -1374,7 +1367,7 @@ impl OnyxApp {
                     
                     vertical_space().height(15),
                     
-                    text("API Key").size(14).style(|_| text::Style{color: Some(Color::from_rgb(0.8,0.8,0.8)), ..Default::default()}),
+                    text("API Key").size(14).style(|_| text::Style{color: Some(Color::from_rgb(0.8,0.8,0.8))}),
                     text_input("Enter your Google API Key...", &self.advanced_settings.youtube_api_key)
                         .on_input(Message::YouTubeApiKeyChanged)
                         .padding(12)
@@ -1388,7 +1381,7 @@ impl OnyxApp {
                             text("ℹ️").size(14),
                             column![
                                 text("Need an API Key?").size(14).font(iced::Font{weight: iced::font::Weight::Bold, ..Default::default()}),
-                                text("Go to console.cloud.google.com -> Create Project -> Enable YouTube Data API v3 -> Create Credentials -> API Key").size(12).style(|_| text::Style{color: Some(Color::from_rgb(0.7,0.7,0.7)), ..Default::default()})
+                                text("Go to console.cloud.google.com -> Create Project -> Enable YouTube Data API v3 -> Create Credentials -> API Key").size(12).style(|_| text::Style{color: Some(Color::from_rgb(0.7,0.7,0.7))})
                             ].spacing(4)
                         ].spacing(10).align_y(iced::alignment::Vertical::Top)
                     )
@@ -1455,7 +1448,7 @@ impl OnyxApp {
                     
                     vertical_space().height(20),
                     
-                    text("Browser Cookies Source").size(14).style(|_| text::Style{color: Some(Color::from_rgb(0.8,0.8,0.8)), ..Default::default()}),
+                    text("Browser Cookies Source").size(14).style(|_| text::Style{color: Some(Color::from_rgb(0.8,0.8,0.8))}),
                     row![
                         pick_list(Browser::ALL, self.advanced_settings.cookies_browser, Message::BrowserSelected)
                             .padding(10)
@@ -1473,11 +1466,11 @@ impl OnyxApp {
                              horizontal_space().width(Length::Fixed(0.0)).into()
                         }
                     ].spacing(10).align_y(iced::alignment::Vertical::Center),
-                    text("Select the browser where you are logged into YouTube (Premium/Age-restricted access)").size(12).style(|_| text::Style{color: Some(Color::from_rgb(0.5,0.5,0.5)), ..Default::default()}),
+                    text("Select the browser where you are logged into YouTube (Premium/Age-restricted access)").size(12).style(|_| text::Style{color: Some(Color::from_rgb(0.5,0.5,0.5))}),
                         
                     vertical_space().height(15),
                     
-                    text("Proxy URL").size(14).style(|_| text::Style{color: Some(Color::from_rgb(0.8,0.8,0.8)), ..Default::default()}),
+                    text("Proxy URL").size(14).style(|_| text::Style{color: Some(Color::from_rgb(0.8,0.8,0.8))}),
                     text_input("http://user:pass@host:port", &self.advanced_settings.proxy_url)
                         .on_input(Message::ProxyChanged)
                         .padding(10)
@@ -1686,7 +1679,7 @@ impl OnyxApp {
             .width(Length::Fixed(120.0))
             .height(Length::Fixed(120.0));
         
-        let error_msg = text(format!("Dependencies Required"))
+        let error_msg = text("Dependencies Required".to_string())
             .size(28);
         
         let description = text("Onyx needs yt-dlp and ffmpeg to download videos")
@@ -1706,7 +1699,7 @@ impl OnyxApp {
                 // Running character animation
                 container(
                     canvas(RunningCharacter { 
-                        progress: progress, 
+                        progress,
                         tick: self.start_time.elapsed().as_secs_f32() 
                     })
                     .width(Length::Fill)
@@ -2059,7 +2052,7 @@ impl OnyxApp {
         // Queue listheader
         let queue_header = row![
             text("Queue").size(18).font(iced::Font{weight: iced::font::Weight::Bold, ..Default::default()}),
-            text(format!("({} items)", self.download_queue.len())).size(14).style(|_| text::Style{color: Some(Color::from_rgb(0.7,0.7,0.7)), ..Default::default()}),
+            text(format!("({} items)", self.download_queue.len())).size(14).style(|_| text::Style{color: Some(Color::from_rgb(0.7,0.7,0.7))}),
             horizontal_space().width(Length::Fill),
             if self.active_downloads > 0 {
                 row![
@@ -2067,7 +2060,7 @@ impl OnyxApp {
                     text(format!("Downloading {}...", self.active_downloads)).size(14)
                 ].spacing(5).align_y(iced::alignment::Vertical::Center)
             } else {
-                row![].into()
+                row![]
             }
         ]
         .spacing(10)
@@ -2077,8 +2070,8 @@ impl OnyxApp {
              container(
                  column![
                      text("📭").size(32),
-                     text("Your queue is empty").size(16).style(|_| text::Style{color: Some(Color::from_rgb(0.8,0.8,0.8)), ..Default::default()}),
-                     text("Add videos to start downloading").size(13).style(|_| text::Style{color: Some(Color::from_rgb(0.5,0.5,0.5)), ..Default::default()})
+                     text("Your queue is empty").size(16).style(|_| text::Style{color: Some(Color::from_rgb(0.8,0.8,0.8))}),
+                     text("Add videos to start downloading").size(13).style(|_| text::Style{color: Some(Color::from_rgb(0.5,0.5,0.5))})
                  ]
                  .spacing(8)
                  .align_x(iced::alignment::Horizontal::Center)
@@ -2274,10 +2267,10 @@ impl OnyxApp {
         let left_sidebar = column![
             thumb,
             vertical_space().height(10),
-            text("TYPE").size(10).style(|_| text::Style{color:Some(Color::from_rgb(0.5,0.5,0.5)), ..Default::default()}),
+            text("TYPE").size(10).style(|_| text::Style{color:Some(Color::from_rgb(0.5,0.5,0.5))}),
             media_picker,
             vertical_space().height(8),
-            text("FORMAT").size(10).style(|_| text::Style{color:Some(Color::from_rgb(0.5,0.5,0.5)), ..Default::default()}),
+            text("FORMAT").size(10).style(|_| text::Style{color:Some(Color::from_rgb(0.5,0.5,0.5))}),
             format_picker
         ]
         .align_x(iced::alignment::Horizontal::Center)
@@ -2314,7 +2307,7 @@ impl OnyxApp {
             
             // Meta Row
              row![
-                text(format!("{}", duration_text)).size(12).style(|_| text::Style{color:Some(Color::from_rgb(0.6,0.6,0.6)), ..Default::default()}),
+                text(duration_text.to_string()).size(12).style(|_| text::Style{color:Some(Color::from_rgb(0.6,0.6,0.6))}),
                 horizontal_space().width(20),
                 status_widget
             ].align_y(iced::alignment::Vertical::Center),
@@ -2568,6 +2561,7 @@ fn parse_youtube_api_videos(data: &str) -> Vec<YouTubeVideo> {
 }
 
 // Parse yt-dlp JSON output (DEPRECATED - keeping for reference)
+#[allow(dead_code)]
 fn parse_youtube_json(data: &[u8]) -> Vec<YouTubeVideo> {
     let text = String::from_utf8_lossy(data);
     let mut videos = Vec::new();
@@ -2619,6 +2613,7 @@ async fn load_youtube_thumbnail(url: String) -> image::Handle {
 }
 
 // Format duration as MM:SS or HH:MM:SS
+#[allow(dead_code)]
 fn format_duration_string(seconds: u32) -> String {
     let hours = seconds / 3600;
     let minutes = (seconds % 3600) / 60;
@@ -2669,9 +2664,7 @@ async fn resolve_stream_url(url: String, settings: AdvancedSettings) -> Result<(
     let local_yt = bin_dir.join(if cfg!(target_os = "windows") { "yt-dlp.exe" } else { "yt-dlp" });
     let yt_binary = if local_yt.exists() { 
         local_yt.to_string_lossy().to_string() 
-    } else { 
-        if cfg!(target_os = "windows") { "yt-dlp.exe".to_string() } else { "yt-dlp".to_string() }
-    };
+    } else if cfg!(target_os = "windows") { "yt-dlp.exe".to_string() } else { "yt-dlp".to_string() };
     
     let mut cmd = tokio::process::Command::new(yt_binary);
     
@@ -2840,9 +2833,7 @@ async fn fetch_thumbnail(url: String) -> Result<image::Handle, String> {
     let local_yt = bin_dir.join(if cfg!(target_os = "windows") { "yt-dlp.exe" } else { "yt-dlp" });
     let cmd_str = if local_yt.exists() {
         local_yt.to_string_lossy().to_string()
-    } else {
-        if cfg!(target_os = "windows") { "yt-dlp.exe".to_string() } else { "yt-dlp".to_string() }
-    };
+    } else if cfg!(target_os = "windows") { "yt-dlp.exe".to_string() } else { "yt-dlp".to_string() };
     
     let output = tokio::process::Command::new(cmd_str)
         .arg("--print")
@@ -2867,9 +2858,7 @@ async fn fetch_video_info(url: String) -> Result<(String, f32), String> {
     let local_yt = bin_dir.join(if cfg!(target_os = "windows") { "yt-dlp.exe" } else { "yt-dlp" });
     let cmd_str = if local_yt.exists() {
         local_yt.to_string_lossy().to_string()
-    } else {
-        if cfg!(target_os = "windows") { "yt-dlp.exe".to_string() } else { "yt-dlp".to_string() }
-    };
+    } else if cfg!(target_os = "windows") { "yt-dlp.exe".to_string() } else { "yt-dlp".to_string() };
     
     let output = tokio::process::Command::new(cmd_str)
         .arg("--print")
@@ -2936,8 +2925,8 @@ async fn download_queue_item(
             cmd.arg("-f").arg("bestvideo+bestaudio/best");
             let format_str = match item.output_format {
                 OutputFormat::MP4 => "mp4",
-                OutputFormat::MKV => "mkv",
-                OutputFormat::WEBM => "webm",
+                OutputFormat::Mkv => "mkv",
+                OutputFormat::Webm => "webm",
                 _ => "mp4",
             };
             cmd.arg("--merge-output-format").arg(format_str);
@@ -2947,8 +2936,8 @@ async fn download_queue_item(
             let format_str = match item.output_format {
                 OutputFormat::MP3 => "mp3",
                 OutputFormat::M4A => "m4a",
-                OutputFormat::OPUS => "opus",
-                OutputFormat::FLAC => "flac",
+                OutputFormat::Opus => "opus",
+                OutputFormat::Flac => "flac",
                 _ => "mp3",
             };
             cmd.arg("--audio-format").arg(format_str);
@@ -2993,12 +2982,10 @@ async fn download_queue_item(
 
         let ffmpeg_bin = if use_local_ffmpeg {
              get_bin_dir().join(if cfg!(target_os = "windows") { "ffmpeg.exe" } else { "ffmpeg" }).to_string_lossy().to_string()
-        } else {
-            if cfg!(target_os = "windows") { "ffmpeg.exe".to_string() } else { "ffmpeg".to_string() }
-        };
+        } else if cfg!(target_os = "windows") { "ffmpeg.exe".to_string() } else { "ffmpeg".to_string() };
         
         let vcodec = match item.output_format {
-            OutputFormat::WEBM => "libvpx-vp9",
+            OutputFormat::Webm => "libvpx-vp9",
             _ => "libx264",
         };
         
@@ -3110,6 +3097,12 @@ fn create_download_stream(args: &DownloadArgs) -> impl iced::futures::Stream<Ite
 
     iced::stream::channel(100, move |mut output: iced::futures::channel::mpsc::Sender<Message>| async move {
         let mut state = DownloadState::Ready(url, folder, format, settings, time_range);
+
+        let re_percent = Regex::new(r"(\d+\.?\d*)%").unwrap();
+        let re_size = Regex::new(r"of\s+([\d.]+\s*[KMG]i?B)").unwrap();
+        let re_speed = Regex::new(r"at\s+([\d.]+\s*[KMG]i?B/s)").unwrap();
+        let re_eta = Regex::new(r"ETA\s+([\d:]+)").unwrap();
+
         loop {
             state = match state {
                 DownloadState::Ready(url, folder, format, settings, time_range) => {
@@ -3227,11 +3220,6 @@ fn create_download_stream(args: &DownloadArgs) -> impl iced::futures::Stream<Ite
                             }
                             
                             // Parse yt-dlp output: [download]  45.3% of 10.50MiB at 1.23MiB/s ETA 00:05
-                            let re_percent = Regex::new(r"(\d+\.?\d*)%").unwrap();
-                            let re_size = Regex::new(r"of\s+([\d.]+\s*[KMG]i?B)").unwrap();
-                            let re_speed = Regex::new(r"at\s+([\d.]+\s*[KMG]i?B/s)").unwrap();
-                            let re_eta = Regex::new(r"ETA\s+([\d:]+)").unwrap();
-                            
                             let progress = if let Some(caps) = re_percent.captures(&line) {
                                 caps.get(1).map_or(0.0, |m| m.as_str().parse().unwrap_or(0.0))
                             } else { -1.0 };
@@ -3425,7 +3413,7 @@ impl canvas::Program<Message> for ProgressBar {
             let width = bounds.width * (self.progress / 100.0);
             let bar = canvas::Path::rectangle(Point::ORIGIN, Size::new(width, bounds.height));
             let shift = (self.tick * 2.0).sin() * 0.2;
-            let stops = [ Some(iced::gradient::ColorStop { offset: 0.0, color: Color::from_rgb(0.4 + shift, 0.1, 0.8).into() }), Some(iced::gradient::ColorStop { offset: 0.5, color: Color::from_rgb(0.2, 0.6, 1.0).into() }), Some(iced::gradient::ColorStop { offset: 1.0, color: Color::from_rgb(0.8, 0.2, 0.9).into() }), None, None, None, None, None ];
+            let stops = [ Some(iced::gradient::ColorStop { offset: 0.0, color: Color::from_rgb(0.4 + shift, 0.1, 0.8) }), Some(iced::gradient::ColorStop { offset: 0.5, color: Color::from_rgb(0.2, 0.6, 1.0) }), Some(iced::gradient::ColorStop { offset: 1.0, color: Color::from_rgb(0.8, 0.2, 0.9) }), None, None, None, None, None ];
             let gradient = canvas::Gradient::Linear(canvas::gradient::Linear { start: Point::new(0.0, 0.0), end: Point::new(bounds.width, 0.0), stops });
             frame.fill(&bar, gradient);
         }
@@ -3642,6 +3630,7 @@ impl canvas::Program<Message> for Stopwatch {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 struct EnhancedETA {
     eta_seconds: u32,
     progress: f32,  // 0.0 to 100.0
@@ -3697,6 +3686,7 @@ impl canvas::Program<Message> for EnhancedETA {
 // STYLES
 // ============================================================================
 
+#[allow(dead_code)]
 struct MainBackground;
 // MainBackground style - use inline styling in iced 0.14
 // MainBackground style - use inline styling in iced 0.14
@@ -3711,6 +3701,7 @@ fn main_background_style(app_theme: AppTheme) -> container::Style {
     }
 }
 
+#[allow(dead_code)]
 struct CardStyle;
 // CardStyle - use inline styling in iced 0.14
 fn card_style(app_theme: AppTheme) -> container::Style {
@@ -3741,8 +3732,10 @@ fn card_style(app_theme: AppTheme) -> container::Style {
     }
 }
 
+#[allow(dead_code)]
 struct QueueItemStyle;
 // QueueItemStyle - use inline styling in iced 0.14
+#[allow(dead_code)]
 fn queue_item_style(_theme: &Theme) -> container::Style {
     container::Style {
         background: Some(iced::Background::Color(Color::from_rgb(0.09, 0.09, 0.13))),
@@ -3755,19 +3748,24 @@ fn queue_item_style(_theme: &Theme) -> container::Style {
     }
 }
 
+#[allow(dead_code)]
 struct OnyxInput;
 
-struct OnyxPrimaryButton { active: bool }
+#[allow(dead_code)]
+struct OnyxPrimaryButton { #[allow(dead_code)] active: bool }
 
+#[allow(dead_code)]
 struct OnyxSecondaryButton;
 
+#[allow(dead_code)]
 struct OnyxPickList;
 
+#[allow(dead_code)]
 struct OnyxOverlay;
 
 // Start PO Token server for YouTube authentication
 async fn start_po_token_server() {
-    use std::path::PathBuf;
+
     
     // Find binary using get_bin_dir helper or fallback
     let bin_path = get_bin_dir().join(if cfg!(target_os = "windows") { "bgutil-pot.exe" } else { "bgutil-pot" });
@@ -3795,18 +3793,25 @@ async fn start_po_token_server() {
 // VIDEO PLAYER STYLES
 // ============================================================================
 
+#[allow(dead_code)]
 struct DarkOverlay;
 
+#[allow(dead_code)]
 struct PlayerModalStyle;
 
+#[allow(dead_code)]
 struct VideoAreaStyle;
 
+#[allow(dead_code)]
 struct TimelineBackgroundStyle;
 
+#[allow(dead_code)]
 struct SelectionOverlayStyle;
 
+#[allow(dead_code)]
 struct TrimHandleStyle;
 
+#[allow(dead_code)]
 struct TrimSliderStyle;
 
 
@@ -3873,7 +3878,7 @@ impl canvas::Program<Message> for TimelineTrimmer {
         let border_top = canvas::Path::line(Point::new(start_x, track_y), Point::new(end_x, track_y));
         let border_bottom = canvas::Path::line(Point::new(start_x, track_y + track_height), Point::new(end_x, track_y + track_height));
         let border_stroke = canvas::Stroke::default().with_color(Color::from_rgb(1.0, 0.84, 0.0)).with_width(4.0);
-        frame.stroke(&border_top, border_stroke.clone());
+        frame.stroke(&border_top, border_stroke);
         frame.stroke(&border_bottom, border_stroke);
 
         // 3. Handles (Start and End) - Chevron Style
@@ -3945,42 +3950,39 @@ impl canvas::Program<Message> for TimelineTrimmer {
              Size::new(handle_width, height)
         );
         
-        match event {
-            iced::Event::Mouse(mouse_event) => match mouse_event {
-                 mouse::Event::ButtonPressed(mouse::Button::Left) => {
-                      if start_handle_rect.contains(cursor_position) {
-                           return Some(canvas::Action::publish(Message::TrimHandlePressed(TrimHandle::Start, cursor_position.x)));
-                      } else if end_handle_rect.contains(cursor_position) {
-                           return Some(canvas::Action::publish(Message::TrimHandlePressed(TrimHandle::End, cursor_position.x)));
-                      } else if cursor_position.x > start_x && cursor_position.x < end_x {
-                           return Some(canvas::Action::publish(Message::TrimHandlePressed(TrimHandle::Selection, cursor_position.x)));
-                      }
-                 }
-                 mouse::Event::ButtonReleased(mouse::Button::Left) => {
-                      if self.dragging.is_some() {
-                           return Some(canvas::Action::publish(Message::TrimHandleReleased));
-                      }
-                 }
-                 mouse::Event::CursorMoved { .. } => {
-                      if self.dragging.is_some() {
-                           return Some(canvas::Action::publish(Message::TrimHandleDragged(cursor_position.x)));
-                      } else {
-                           // Hover detection
-                           if start_handle_rect.contains(cursor_position) {
-                                return Some(canvas::Action::publish(Message::TrimHandleHover(Some(TrimHandle::Start))));
-                           } else if end_handle_rect.contains(cursor_position) {
-                                return Some(canvas::Action::publish(Message::TrimHandleHover(Some(TrimHandle::End))));
-                           } else if cursor_position.x > start_x && cursor_position.x < end_x {
-                                return Some(canvas::Action::publish(Message::TrimHandleHover(Some(TrimHandle::Selection))));
-                           } else {
-                                return Some(canvas::Action::publish(Message::TrimHandleHover(None)));
-                           }
-                      }
-                 }
-                 _ => {}
-            }
-            _ => {}
-        }
+        if let iced::Event::Mouse(mouse_event) = event { match mouse_event {
+             mouse::Event::ButtonPressed(mouse::Button::Left) => {
+                  if start_handle_rect.contains(cursor_position) {
+                       return Some(canvas::Action::publish(Message::TrimHandlePressed(TrimHandle::Start, cursor_position.x)));
+                  } else if end_handle_rect.contains(cursor_position) {
+                       return Some(canvas::Action::publish(Message::TrimHandlePressed(TrimHandle::End, cursor_position.x)));
+                  } else if cursor_position.x > start_x && cursor_position.x < end_x {
+                       return Some(canvas::Action::publish(Message::TrimHandlePressed(TrimHandle::Selection, cursor_position.x)));
+                  }
+             }
+             mouse::Event::ButtonReleased(mouse::Button::Left) => {
+                  if self.dragging.is_some() {
+                       return Some(canvas::Action::publish(Message::TrimHandleReleased));
+                  }
+             }
+             mouse::Event::CursorMoved { .. } => {
+                  if self.dragging.is_some() {
+                       return Some(canvas::Action::publish(Message::TrimHandleDragged(cursor_position.x)));
+                  } else {
+                       // Hover detection
+                       if start_handle_rect.contains(cursor_position) {
+                            return Some(canvas::Action::publish(Message::TrimHandleHover(Some(TrimHandle::Start))));
+                       } else if end_handle_rect.contains(cursor_position) {
+                            return Some(canvas::Action::publish(Message::TrimHandleHover(Some(TrimHandle::End))));
+                       } else if cursor_position.x > start_x && cursor_position.x < end_x {
+                            return Some(canvas::Action::publish(Message::TrimHandleHover(Some(TrimHandle::Selection))));
+                       } else {
+                            return Some(canvas::Action::publish(Message::TrimHandleHover(None)));
+                       }
+                  }
+             }
+             _ => {}
+        } }
         None
     }
 }
@@ -3989,7 +3991,9 @@ impl canvas::Program<Message> for TimelineTrimmer {
 // ANIMATED TAB BAR
 // ============================================================================
 
+#[allow(dead_code)]
 struct AnimatedTabBar {
+    #[allow(dead_code)]
     active_tab: Tab,
     anim_pos: f32,
     queue_count: usize,
@@ -4201,8 +4205,10 @@ fn glass_danger_style(_theme: &iced::Theme, status: iced::widget::button::Status
 // CROP OVERLAY
 // ============================================================================
 
+#[allow(dead_code)]
 struct CropOverlay {
     selection: Option<CropRect>,
+    #[allow(dead_code)]
     drag_start: Option<Point>,
 }
 
@@ -4254,13 +4260,13 @@ impl canvas::Program<Message> for CropOverlay {
              // Vertical
              let v1 = canvas::Path::line(Point::new(rect.x + rect.width / 3.0, rect.y), Point::new(rect.x + rect.width / 3.0, rect.y + rect.height));
              let v2 = canvas::Path::line(Point::new(rect.x + 2.0 * rect.width / 3.0, rect.y), Point::new(rect.x + 2.0 * rect.width / 3.0, rect.y + rect.height));
-             frame.stroke(&v1, stroke.clone());
-             frame.stroke(&v2, stroke.clone());
+             frame.stroke(&v1, stroke);
+             frame.stroke(&v2, stroke);
              
              // Horizontal
              let h1 = canvas::Path::line(Point::new(rect.x, rect.y + rect.height / 3.0), Point::new(rect.x + rect.width, rect.y + rect.height / 3.0));
              let h2 = canvas::Path::line(Point::new(rect.x, rect.y + 2.0 * rect.height / 3.0), Point::new(rect.x + rect.width, rect.y + 2.0 * rect.height / 3.0));
-             frame.stroke(&h1, stroke.clone());
+             frame.stroke(&h1, stroke);
              frame.stroke(&h2, stroke);
         } else {
              // No selection, full dim

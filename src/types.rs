@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 use iced::widget::image;
-use std::path::PathBuf;
 use std::fs;
 use directories::ProjectDirs;
 
@@ -16,6 +15,7 @@ pub enum Tab {
 }
 
 impl Tab {
+    #[allow(dead_code)]
     pub fn all() -> &'static [Tab] {
         &[Tab::QuickDownload, Tab::BatchQueue, Tab::Settings]
     }
@@ -38,6 +38,7 @@ pub enum MediaType {
 }
 
 impl MediaType {
+    #[allow(dead_code)]
     pub fn all() -> &'static [MediaType] {
         &[MediaType::Video, MediaType::Audio]
     }
@@ -56,20 +57,20 @@ impl std::fmt::Display for MediaType {
 pub enum OutputFormat {
     // Video
     MP4,
-    MKV,
-    WEBM,
+    Mkv,
+    Webm,
     // Audio
     MP3,
     M4A,
-    OPUS,
-    FLAC,
+    Opus,
+    Flac,
 }
 
 impl OutputFormat {
     pub fn for_media_type(media_type: MediaType) -> &'static [OutputFormat] {
         match media_type {
-            MediaType::Video => &[OutputFormat::MP4, OutputFormat::MKV, OutputFormat::WEBM],
-            MediaType::Audio => &[OutputFormat::MP3, OutputFormat::M4A, OutputFormat::OPUS, OutputFormat::FLAC],
+            MediaType::Video => &[OutputFormat::MP4, OutputFormat::Mkv, OutputFormat::Webm],
+            MediaType::Audio => &[OutputFormat::MP3, OutputFormat::M4A, OutputFormat::Opus, OutputFormat::Flac],
         }
     }
     
@@ -85,12 +86,12 @@ impl std::fmt::Display for OutputFormat {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             OutputFormat::MP4 => write!(f, "MP4"),
-            OutputFormat::MKV => write!(f, "MKV"),
-            OutputFormat::WEBM => write!(f, "WEBM"),
+            OutputFormat::Mkv => write!(f, "MKV"),
+            OutputFormat::Webm => write!(f, "WEBM"),
             OutputFormat::MP3 => write!(f, "MP3"),
             OutputFormat::M4A => write!(f, "M4A"),
-            OutputFormat::OPUS => write!(f, "OPUS"),
-            OutputFormat::FLAC => write!(f, "FLAC"),
+            OutputFormat::Opus => write!(f, "OPUS"),
+            OutputFormat::Flac => write!(f, "FLAC"),
         }
     }
 }
@@ -137,11 +138,12 @@ pub enum AppTheme {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub enum AppState {
     Idle,
     CheckingDependencies,
     DependencyError { error: String, downloading: bool, progress: f32 },
-    Downloading { progress: f32, status_text: String },
+    Downloading { progress: f32, #[allow(dead_code)] status_text: String },
     Finished(Result<(), String>),
 }
 
@@ -152,9 +154,11 @@ pub enum TrimHandle {
     Selection, // For dragging the entire selection
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct TrimHandleStyle;
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct TrimSliderStyle;
 
