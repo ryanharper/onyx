@@ -7,6 +7,7 @@ use std::process::Stdio;
 use regex::Regex;
 use std::time::Instant;
 use iced::futures::SinkExt;
+#[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 use serde::{Deserialize, Serialize};
 use directories::ProjectDirs;
@@ -2665,11 +2666,11 @@ fn parse_duration(duration_str: &str) -> Option<f32> {
 // Resolve direct stream URL using yt-dlp
 async fn resolve_stream_url(url: String, settings: AdvancedSettings) -> Result<(String, f32), String> {
     let bin_dir = get_bin_dir();
-    let local_yt = bin_dir.join("yt-dlp");
+    let local_yt = bin_dir.join(if cfg!(target_os = "windows") { "yt-dlp.exe" } else { "yt-dlp" });
     let yt_binary = if local_yt.exists() { 
         local_yt.to_string_lossy().to_string() 
     } else { 
-        "yt-dlp".to_string() 
+        if cfg!(target_os = "windows") { "yt-dlp.exe".to_string() } else { "yt-dlp".to_string() }
     };
     
     let mut cmd = tokio::process::Command::new(yt_binary);
@@ -2714,8 +2715,8 @@ async fn resolve_stream_url(url: String, settings: AdvancedSettings) -> Result<(
 // Check if dependencies are installed
 async fn check_dependencies() -> (bool, String) {
     let bin_dir = get_bin_dir();
-    let local_yt = bin_dir.join("yt-dlp");
-    let local_ffmpeg = bin_dir.join("ffmpeg"); // Usually not downloaded, but checked
+    let local_yt = bin_dir.join(if cfg!(target_os = "windows") { "yt-dlp.exe" } else { "yt-dlp" });
+    let local_ffmpeg = bin_dir.join(if cfg!(target_os = "windows") { "ffmpeg.exe" } else { "ffmpeg" }); // Usually not downloaded, but checked
     
     if local_yt.exists() && local_ffmpeg.exists() {
          return (true, "Using Local Binaries".to_string());
@@ -2745,6 +2746,8 @@ async fn download_dependencies_task() -> Result<(), String> {
     // Download yt-dlp
     let yt_url = if cfg!(target_os = "macos") {
         "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos"
+    } else if cfg!(target_os = "windows") {
+        "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe"
     } else {
         "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp"
     };
@@ -2755,7 +2758,7 @@ async fn download_dependencies_task() -> Result<(), String> {
     let response = reqwest::get(yt_url).await.map_err(|e| format!("Failed to connect to yt-dlp release: {}", e))?;
     let bytes = response.bytes().await.map_err(|e| format!("Failed to download yt-dlp: {}", e))?;
     
-    let yt_path = bin_dir.join("yt-dlp");
+    let yt_path = bin_dir.join(if cfg!(target_os = "windows") { "yt-dlp.exe" } else { "yt-dlp" });
     let mut file = tokio::fs::File::create(&yt_path).await.map_err(|e| e.to_string())?;
     file.write_all(&bytes).await.map_err(|e| e.to_string())?;
     
@@ -2797,6 +2800,8 @@ async fn download_dependencies_task() -> Result<(), String> {
          } else {
              "https://github.com/jim60105/bgutil-ytdlp-pot-provider-rs/releases/download/v0.6.4/bgutil-pot-macos-x86_64"
          }
+    } else if cfg!(target_os = "windows") {
+         "https://github.com/jim60105/bgutil-ytdlp-pot-provider-rs/releases/download/v0.6.4/bgutil-pot-windows-x86_64.exe"
     } else {
          // Assume Linux
          if cfg!(target_arch = "aarch64") {
@@ -2810,7 +2815,7 @@ async fn download_dependencies_task() -> Result<(), String> {
     
     if let Ok(response) = pot_response {
         if let Ok(bytes) = response.bytes().await {
-            let pot_path = bin_dir.join("bgutil-pot");
+            let pot_path = bin_dir.join(if cfg!(target_os = "windows") { "bgutil-pot.exe" } else { "bgutil-pot" });
             if let Ok(mut file) = tokio::fs::File::create(&pot_path).await {
                 let _ = file.write_all(&bytes).await;
                 #[cfg(unix)]
@@ -2832,11 +2837,11 @@ async fn download_dependencies_task() -> Result<(), String> {
 // Fetch thumbnail
 async fn fetch_thumbnail(url: String) -> Result<image::Handle, String> {
     let bin_dir = get_bin_dir();
-    let local_yt = bin_dir.join("yt-dlp");
+    let local_yt = bin_dir.join(if cfg!(target_os = "windows") { "yt-dlp.exe" } else { "yt-dlp" });
     let cmd_str = if local_yt.exists() {
         local_yt.to_string_lossy().to_string()
     } else {
-        "yt-dlp".to_string()
+        if cfg!(target_os = "windows") { "yt-dlp.exe".to_string() } else { "yt-dlp".to_string() }
     };
     
     let output = tokio::process::Command::new(cmd_str)
@@ -2859,11 +2864,11 @@ async fn fetch_thumbnail(url: String) -> Result<image::Handle, String> {
 // Fetch video info (title and duration)
 async fn fetch_video_info(url: String) -> Result<(String, f32), String> {
     let bin_dir = get_bin_dir();
-    let local_yt = bin_dir.join("yt-dlp");
+    let local_yt = bin_dir.join(if cfg!(target_os = "windows") { "yt-dlp.exe" } else { "yt-dlp" });
     let cmd_str = if local_yt.exists() {
         local_yt.to_string_lossy().to_string()
     } else {
-        "yt-dlp".to_string()
+        if cfg!(target_os = "windows") { "yt-dlp.exe".to_string() } else { "yt-dlp".to_string() }
     };
     
     let output = tokio::process::Command::new(cmd_str)
@@ -2896,13 +2901,13 @@ async fn download_queue_item(
     settings: AdvancedSettings
 ) -> Result<(), String> {
     let bin_dir = get_bin_dir();
-    let local_yt = bin_dir.join("yt-dlp");
-    let local_ffmpeg = bin_dir.join("ffmpeg");
+    let local_yt = bin_dir.join(if cfg!(target_os = "windows") { "yt-dlp.exe" } else { "yt-dlp" });
+    let local_ffmpeg = bin_dir.join(if cfg!(target_os = "windows") { "ffmpeg.exe" } else { "ffmpeg" });
     
     let (cmd_str, use_local_ffmpeg) = if local_yt.exists() {
         (local_yt.to_string_lossy().to_string(), local_ffmpeg.exists())
     } else {
-        ("yt-dlp".to_string(), false)
+        (if cfg!(target_os = "windows") { "yt-dlp.exe".to_string() } else { "yt-dlp".to_string() }, false)
     };
     
     let mut cmd = tokio::process::Command::new(&cmd_str);
@@ -2912,7 +2917,8 @@ async fn download_queue_item(
     // Always add bin/ to PATH so yt-dlp can find ffmpeg (needed for time range downloads)
     let current_path = std::env::var("PATH").unwrap_or_default();
     let bin_path_env = get_bin_dir();
-    cmd.env("PATH", format!("{}:{}", bin_path_env.display(), current_path));
+    let path_sep = if cfg!(target_os = "windows") { ";" } else { ":" };
+    cmd.env("PATH", format!("{}{}{}", bin_path_env.display(), path_sep, current_path));
 
 
     cmd.arg(&item.url)
@@ -2986,8 +2992,10 @@ async fn download_queue_item(
                              crop.width, crop.height, crop.x, crop.y);
 
         let ffmpeg_bin = if use_local_ffmpeg {
-             get_bin_dir().join("ffmpeg").to_string_lossy().to_string()
-        } else { "ffmpeg".to_string() };
+             get_bin_dir().join(if cfg!(target_os = "windows") { "ffmpeg.exe" } else { "ffmpeg" }).to_string_lossy().to_string()
+        } else {
+            if cfg!(target_os = "windows") { "ffmpeg.exe".to_string() } else { "ffmpeg".to_string() }
+        };
         
         let vcodec = match item.output_format {
             OutputFormat::WEBM => "libvpx-vp9",
@@ -2996,10 +3004,17 @@ async fn download_queue_item(
         
         // Use --exec to reliably crop after download/trim
         // Note: {{}} is escaped {} for Rust format string.
-        let exec_cmd = format!(
-            "{} -y -i {{}} -vf \"{}\" -c:v {} -c:a copy {{}}.cropped.mp4 && mv {{}}.cropped.mp4 {{}}",
-            ffmpeg_bin, filter, vcodec
-        );
+        let exec_cmd = if cfg!(target_os = "windows") {
+             format!(
+                "{} -y -i {{}} -vf \"{}\" -c:v {} -c:a copy {{}}.cropped.mp4 & move /y {{}}.cropped.mp4 {{}}",
+                ffmpeg_bin, filter, vcodec
+            )
+        } else {
+             format!(
+                "{} -y -i {{}} -vf \"{}\" -c:v {} -c:a copy {{}}.cropped.mp4 && mv {{}}.cropped.mp4 {{}}",
+                ffmpeg_bin, filter, vcodec
+            )
+        };
         
         cmd.arg("--exec").arg(exec_cmd);
     }
@@ -3099,13 +3114,13 @@ fn create_download_stream(args: &DownloadArgs) -> impl iced::futures::Stream<Ite
             state = match state {
                 DownloadState::Ready(url, folder, format, settings, time_range) => {
                     let bin_dir = get_bin_dir();
-                    let local_yt = bin_dir.join("yt-dlp");
-                    let local_ffmpeg = bin_dir.join("ffmpeg");
+                    let local_yt = bin_dir.join(if cfg!(target_os = "windows") { "yt-dlp.exe" } else { "yt-dlp" });
+                    let local_ffmpeg = bin_dir.join(if cfg!(target_os = "windows") { "ffmpeg.exe" } else { "ffmpeg" });
                     
                     let (cmd_str, _use_local_ffmpeg) = if local_yt.exists() {
                         (local_yt.to_string_lossy().to_string(), local_ffmpeg.exists())
                     } else {
-                        ("yt-dlp".to_string(), false)
+                        (if cfg!(target_os = "windows") { "yt-dlp.exe".to_string() } else { "yt-dlp".to_string() }, false)
                     };
                     
                     let mut cmd = tokio::process::Command::new(&cmd_str);
@@ -3114,7 +3129,8 @@ fn create_download_stream(args: &DownloadArgs) -> impl iced::futures::Stream<Ite
                     // Always add bin/ to PATH so yt-dlp can find ffmpeg (needed for time range downloads)
                     let current_path = std::env::var("PATH").unwrap_or_default();
                     let bin_path_env = get_bin_dir();
-                    cmd.env("PATH", format!("{}:{}", bin_path_env.display(), current_path));
+                    let path_sep = if cfg!(target_os = "windows") { ";" } else { ":" };
+                    cmd.env("PATH", format!("{}{}{}", bin_path_env.display(), path_sep, current_path));
 
 
                     cmd.arg(&url).arg("-o").arg("%(title)s.%(ext)s").arg("--newline").arg("--no-playlist")
