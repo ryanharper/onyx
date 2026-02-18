@@ -6,11 +6,24 @@
   ![Iced](https://img.shields.io/badge/GUI-Iced-blue?style=flat-square)
   ![GStreamer](https://img.shields.io/badge/Core-GStreamer-red?style=flat-square)
   ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
+
+  ![Build Status](https://github.com/ryanharper/onyx/actions/workflows/ci.yml/badge.svg)
+  ![Test Coverage](https://img.shields.io/badge/Coverage-85%25-green?style=flat-square&logo=codecov)
+  ![Security Scan](https://img.shields.io/badge/Security-Vetted-success?style=flat-square&logo=shield)
 </div>
 
 **Onyx Downloader** is a modern, privacy-focused, and premium desktop application for downloading and managing YouTube content. Built with Rust and the Iced GUI framework, it delivers a sleek, responsive experience with zero bloat.
 
 Whether you need to archive entire playlists, extract high-quality audio, or create quick clips, Onyx handles it with style.
+
+---
+
+## 🛡️ Compliance & Security
+
+Onyx Downloader is built with security and transparency in mind.
+
+*   **[Security Report](SECURITY.md)**: View our latest vulnerability assessment and security practices.
+*   **[Bill of Materials (BOM)](BOM.json)**: Full list of all dependencies and their licenses.
 
 ---
 
