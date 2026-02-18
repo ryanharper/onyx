@@ -493,7 +493,7 @@ impl OnyxApp {
                 let ready_items: Vec<_> = self.download_queue.iter()
                     .filter(|item| matches!(item.status, QueueStatus::Ready))
                     .take(20)
-                    .map(|item| item.clone())
+                    .cloned()
                     .collect();
                 
                 let commands: Vec<_> = ready_items.iter().map(|item| {
@@ -803,8 +803,8 @@ impl OnyxApp {
             }
             Message::UpdateCropDrag(p) => {
                 if let Some(start) = self.crop_drag_start {
-                    let x = start.x.min(p.x).max(0.0).min(1.0);
-                    let y = start.y.min(p.y).max(0.0).min(1.0);
+                    let x = start.x.min(p.x).clamp(0.0, 1.0);
+                    let y = start.y.min(p.y).clamp(0.0, 1.0);
                     let width = (start.x - p.x).abs().min(1.0 - x); // Clamp width
                     let height = (start.y - p.y).abs().min(1.0 - y); // Clamp height
                     
@@ -958,7 +958,7 @@ impl OnyxApp {
             
         let title = column![
             text("ONYX").size(30).font(iced::Font { weight: iced::font::Weight::Bold, ..Default::default() }),
-            text("Downloader").size(14).style(|_| text::Style { color: Some(Color::from_rgb(0.7,0.7,0.7)), ..Default::default() })
+            text("Downloader").size(14).style(|_| text::Style { color: Some(Color::from_rgb(0.7,0.7,0.7)) })
         ];
         
         let theme_btn = button(text(if self.theme == AppTheme::Default { "🎨" } else { "☀️" }).size(20))
@@ -974,7 +974,7 @@ impl OnyxApp {
             // Status pill
              container(row![
                  text(if self.dependencies_ok { "✓ SYSTEM READY" } else { "⚠ MISSING DEPS" }).size(12)
-                     .style(|_| text::Style { color: Some(if self.dependencies_ok { Color::from_rgb(0.4, 1.0, 0.4) } else { Color::from_rgb(1.0, 0.4, 0.4) }), ..Default::default() }),
+                     .style(|_| text::Style { color: Some(if self.dependencies_ok { Color::from_rgb(0.4, 1.0, 0.4) } else { Color::from_rgb(1.0, 0.4, 0.4) }) }),
              ].align_y(iced::alignment::Vertical::Center))
              .padding([6, 12])
              .style(move |_| container::Style {
@@ -1223,7 +1223,7 @@ impl OnyxApp {
              .into()
         } else {
              // Stylish Placeholder
-             container(text("No Image").size(20).style(|_| text::Style { color: Some(Color::from_rgb(0.5, 0.5, 0.5)), ..Default::default() }))
+             container(text("No Image").size(20).style(|_| text::Style { color: Some(Color::from_rgb(0.5, 0.5, 0.5)) }))
                 .width(Length::Fill)
                 .height(Length::Fixed(180.0))
                 .center_x(Length::Fill)
@@ -1236,7 +1236,7 @@ impl OnyxApp {
         let play_overlay = container(
             text("▶")
                 .size(50)
-                .style(|_| text::Style { color: Some(Color::WHITE), ..Default::default() })
+                .style(|_| text::Style { color: Some(Color::WHITE) })
         )
         .center_x(Length::Fill)
         .center_y(Length::Fill);
@@ -1253,9 +1253,9 @@ impl OnyxApp {
         .on_press(Message::OpenVideoPlayer(video.url.clone(), video.title.clone(), duration_secs));
         
         // Info Section
-        let title = text(&video.title).size(16).font(iced::Font { weight: iced::font::Weight::Bold, ..Default::default() }).style(|_| text::Style { color: Some(Color::WHITE), ..Default::default() });
-        let channel = text(&video.channel).size(12).style(|_| text::Style { color: Some(Color::from_rgb(0.9, 0.9, 1.0)), ..Default::default() });
-        let details = text(format!("👁 {} • ⏱ {}", video.views, video.duration)).size(12).style(|_| text::Style { color: Some(Color::from_rgb(0.7, 0.7, 0.7)), ..Default::default() });
+        let title = text(&video.title).size(16).font(iced::Font { weight: iced::font::Weight::Bold, ..Default::default() }).style(|_| text::Style { color: Some(Color::WHITE) });
+        let channel = text(&video.channel).size(12).style(|_| text::Style { color: Some(Color::from_rgb(0.9, 0.9, 1.0)) });
+        let details = text(format!("👁 {} • ⏱ {}", video.views, video.duration)).size(12).style(|_| text::Style { color: Some(Color::from_rgb(0.7, 0.7, 0.7)) });
         
         let add_btn = button(
              container(
@@ -1353,7 +1353,7 @@ impl OnyxApp {
         let content = column![
             row![
                 text("⚙️").size(28),
-                text("Settings").size(28).font(iced::Font{weight: iced::font::Weight::Bold})
+                text("Settings").size(28).font(iced::Font{weight: iced::font::Weight::Bold, ..Default::default()})
             ].spacing(10).align_y(iced::alignment::Vertical::Center),
             
             vertical_space().height(30),
@@ -1363,7 +1363,7 @@ impl OnyxApp {
                 column![
                     row![
                         text("🔑").size(20),
-                        text("YouTube API Configuration").size(18).font(iced::Font{weight: iced::font::Weight::Bold})
+                        text("YouTube API Configuration").size(18).font(iced::Font{weight: iced::font::Weight::Bold, ..Default::default()})
                     ].spacing(10).align_y(iced::alignment::Vertical::Center),
                     
                     vertical_space().height(15),
@@ -1381,7 +1381,7 @@ impl OnyxApp {
                         row![
                             text("ℹ️").size(14),
                             column![
-                                text("Need an API Key?").size(14).font(iced::Font{weight: iced::font::Weight::Bold}),
+                                text("Need an API Key?").size(14).font(iced::Font{weight: iced::font::Weight::Bold, ..Default::default()}),
                                 text("Go to console.cloud.google.com -> Create Project -> Enable YouTube Data API v3 -> Create Credentials -> API Key").size(12).style(|_| text::Style{color: Some(Color::from_rgb(0.7,0.7,0.7))})
                             ].spacing(4)
                         ].spacing(10).align_y(iced::alignment::Vertical::Top)
@@ -1410,7 +1410,7 @@ impl OnyxApp {
                 column![
                     row![
                         text("⬇️").size(20),
-                        text("Download Preferences").size(18).font(iced::Font{weight: iced::font::Weight::Bold})
+                        text("Download Preferences").size(18).font(iced::Font{weight: iced::font::Weight::Bold, ..Default::default()})
                     ].spacing(10).align_y(iced::alignment::Vertical::Center),
                     
                     vertical_space().height(20),
@@ -1444,7 +1444,7 @@ impl OnyxApp {
                 column![
                      row![
                         text("🌐").size(20),
-                        text("Network & Cookies").size(18).font(iced::Font{weight: iced::font::Weight::Bold})
+                        text("Network & Cookies").size(18).font(iced::Font{weight: iced::font::Weight::Bold, ..Default::default()})
                     ].spacing(10).align_y(iced::alignment::Vertical::Center),
                     
                     vertical_space().height(20),
@@ -1792,7 +1792,7 @@ impl OnyxApp {
             .style(rounded_text_input_style);
         
         let format_selector = column![
-            text("Options").size(14).font(iced::Font{weight: iced::font::Weight::Bold}),
+            text("Options").size(14).font(iced::Font{weight: iced::font::Weight::Bold, ..Default::default()}),
             row(
                 DownloadFormat::all().iter().map(|fmt| {
                     let is_selected = self.format == *fmt;
@@ -1944,7 +1944,7 @@ impl OnyxApp {
                     let is_active = self.quick_time_range.is_some();
                     
                     let header = row![
-                         text("✂️ Download Section").size(16).font(iced::Font{weight: iced::font::Weight::Bold}),
+                         text("✂️ Download Section").size(16).font(iced::Font{weight: iced::font::Weight::Bold, ..Default::default()}),
                          horizontal_space(),
                          checkbox(is_active).on_toggle(Message::ToggleQuickTimeRange)
                     ].align_y(iced::alignment::Vertical::Center);
@@ -2052,7 +2052,7 @@ impl OnyxApp {
         // Queue list
         // Queue listheader
         let queue_header = row![
-            text("Queue").size(18).font(iced::Font{weight: iced::font::Weight::Bold}),
+            text("Queue").size(18).font(iced::Font{weight: iced::font::Weight::Bold, ..Default::default()}),
             text(format!("({} items)", self.download_queue.len())).size(14).style(|_| text::Style{color: Some(Color::from_rgb(0.7,0.7,0.7))}),
             horizontal_space().width(Length::Fill),
             if self.active_downloads > 0 {

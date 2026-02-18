@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use crate::types::*;
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub enum Message {
     // Tab switching
     SwitchTab(Tab),
