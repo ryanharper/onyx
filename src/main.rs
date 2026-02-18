@@ -3006,7 +3006,7 @@ async fn download_queue_item(
         // Note: {{}} is escaped {} for Rust format string.
         let exec_cmd = if cfg!(target_os = "windows") {
              format!(
-                "{} -y -i {{}} -vf \"{}\" -c:v {} -c:a copy {{}}.cropped.mp4 & move /y {{}}.cropped.mp4 {{}}",
+                "{} -y -i {{}} -vf \"{}\" -c:v {} -c:a copy {{}}.cropped.mp4 && move /y {{}}.cropped.mp4 {{}}",
                 ffmpeg_bin, filter, vcodec
             )
         } else {
@@ -3770,22 +3770,15 @@ async fn start_po_token_server() {
     use std::path::PathBuf;
     
     // Find binary using get_bin_dir helper or fallback
-    let bin_path = get_bin_dir().join("bgutil-pot");
+    let bin_path = get_bin_dir().join(if cfg!(target_os = "windows") { "bgutil-pot.exe" } else { "bgutil-pot" });
 
     if !bin_path.exists() {
         return; // Not downloaded yet, skip
     }
     
-    // Check if server is already running
-    let check = tokio::process::Command::new("lsof")
-        .arg("-i")
-        .arg(":8190")
-        .output();
-    
-    if let Ok(output) = check.await {
-        if !output.stdout.is_empty() {
-            return; // Server already running
-        }
+    // Check if server is already running by attempting to connect to the port
+    if tokio::net::TcpStream::connect("127.0.0.1:8190").await.is_ok() {
+        return; // Server already running
     }
     
     // Start server in background
