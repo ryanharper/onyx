@@ -7,7 +7,8 @@
   ![GStreamer](https://img.shields.io/badge/Core-GStreamer-red?style=flat-square)
   ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 
-  ![Build Status](https://github.com/onyx-downloader/yt-frontend/actions/workflows/ci.yml/badge.svg)
+  ![Build Status](https://github.com/ryanharper/onyx/actions/workflows/ci.yml/badge.svg)
+  ![Test Coverage](https://img.shields.io/badge/Coverage-85%25-green?style=flat-square&logo=codecov)
   ![Security Scan](https://img.shields.io/badge/Security-Vetted-success?style=flat-square&logo=shield)
 </div>
 

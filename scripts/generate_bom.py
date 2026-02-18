@@ -1,6 +1,6 @@
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 def generate_cyclonedx(metadata_file, output_file):
     with open(metadata_file, 'r') as f:
@@ -12,7 +12,7 @@ def generate_cyclonedx(metadata_file, output_file):
         "serialNumber": f"urn:uuid:{uuid.uuid4()}",
         "version": 1,
         "metadata": {
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
             "tools": [
                 {
                     "vendor": "Onyx",

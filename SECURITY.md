@@ -14,7 +14,7 @@ We perform regular security audits of our dependencies using `cargo-audit`.
 ![Warnings](https://img.shields.io/badge/Warnings-6%20Unmaintained-yellow?style=for-the-badge)
 
 ### Audit History & Live Results
-Security scans are performed on every commit. You can view the live status and detailed history in our [GitHub Actions pipeline](https://github.com/onyx-downloader/yt-frontend/actions).
+Security scans are performed on every commit. You can view the live status and detailed history in our [GitHub Actions pipeline](https://github.com/ryanharper/onyx/actions).
 
 #### Known Advisories (Last Reviewed: 2026-02-18)
 | Crate | Issue | Mitigation |
