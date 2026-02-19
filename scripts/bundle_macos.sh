@@ -329,7 +329,7 @@ export GST_PLUGIN_SYSTEM_PATH="\$RESOURCES/lib/gstreamer-1.0"
 export GST_PLUGIN_SCANNER="\$RESOURCES/libexec/gstreamer-1.0/gst-plugin-scanner"
 export GTK_PATH="\$RESOURCES/lib/gtk-3.0"
 export GST_DEBUG="*:2,soup:5,osxaudio:5,videodecoder:5,qtdemux:5"
-export GST_DEBUG_FILE="$HOME/Desktop/onyx-gst-debug.log"
+export GST_DEBUG_FILE="/tmp/onyx-gst-debug.log"
 
 # Fix SSL/TLS backend for libsoup (must avail glib-networking from Nix store)
 export GIO_EXTRA_MODULES="$GIO_EXTRA_MODULES"
