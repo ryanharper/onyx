@@ -355,9 +355,15 @@ EOF
 
 chmod +x "$LAUNCHER"
 
-# 7. Update Info.plist to point to launcher
+# 7. Update Info.plist to point to launcher and match bundle name
 /usr/libexec/PlistBuddy -c "Set :CFBundleExecutable onyx-launcher" "$CONTENTS_DIR/Info.plist"
 
+# Correct metadata to match bundle name and identifier
+/usr/libexec/PlistBuddy -c "Set :CFBundleName $APP_NAME" "$CONTENTS_DIR/Info.plist" || /usr/libexec/PlistBuddy -c "Add :CFBundleName string $APP_NAME" "$CONTENTS_DIR/Info.plist"
+/usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName $APP_NAME" "$CONTENTS_DIR/Info.plist" || /usr/libexec/PlistBuddy -c "Add :CFBundleDisplayName string $APP_NAME" "$CONTENTS_DIR/Info.plist"
+
+# Ensure Identifier is consistent
+/usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.onyx.yt-frontend" "$CONTENTS_DIR/Info.plist" || /usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string com.onyx.yt-frontend" "$CONTENTS_DIR/Info.plist"
 # 7b. FINAL SIGNING (Must be last modification)
 echo "🔏 Re-signing binaries (manual recursive) with hardened runtime..."
 
