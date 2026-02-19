@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use crate::types::*;
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub enum Message {
     // Tab switching
     SwitchTab(Tab),
@@ -22,7 +23,9 @@ pub enum Message {
     QueueUrlInputChanged(String),
     AddToQueue,
     RemoveQueueItem(usize),
+    #[allow(dead_code)]
     MoveQueueItemUp(usize),
+    #[allow(dead_code)]
     MoveQueueItemDown(usize),
     
     // Queue item configuration
@@ -73,7 +76,7 @@ pub enum Message {
     ToggleCropMode,
     StartCropDrag(iced::Point),
     UpdateCropDrag(iced::Point),
-    EndCropDrag(iced::Point),
+    EndCropDrag(#[allow(dead_code)] iced::Point),
     UpdatePlayerPosition(f32),
     SwitchTheme,
     
@@ -83,6 +86,7 @@ pub enum Message {
     TrimHandleReleased,
     TrimHandleHover(Option<TrimHandle>),
     SeekToPosition(f32),
+    #[allow(dead_code)]
     AddTrimmedToQueue,
     
     // Dependencies
@@ -93,7 +97,9 @@ pub enum Message {
     // UX
     CardHovered(String),
     CardUnhovered,
+    #[allow(dead_code)]
     EditQueueItem(usize),
+    #[allow(dead_code)]
     UpdateQueueItem,
 }
 

@@ -2,8 +2,8 @@ use super::*;
 
 #[test]
 fn test_download_format_defaults() {
-    assert_eq!(OutputFormat::default_for(MediaType::Video), OutputFormat::MP4);
-    assert_eq!(OutputFormat::default_for(MediaType::Audio), OutputFormat::MP3);
+    assert_eq!(OutputFormat::default_for(MediaType::Video), OutputFormat::Mp4);
+    assert_eq!(OutputFormat::default_for(MediaType::Audio), OutputFormat::Mp3);
 }
 
 #[test]
