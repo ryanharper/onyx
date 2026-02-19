@@ -339,6 +339,7 @@ export GIO_EXTRA_MODULES="$GIO_EXTRA_MODULES"
 export SSL_CERT_FILE="/etc/ssl/cert.pem"
 export GTLS_SYSTEM_CA_FILE="/etc/ssl/cert.pem"
 export CURL_CA_BUNDLE="/etc/ssl/cert.pem"
+export NIX_SSL_CERT_FILE="/etc/ssl/cert.pem"
 
 
 echo "Please check $GST_DEBUG_FILE for GStreamer logs"
