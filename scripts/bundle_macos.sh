@@ -20,10 +20,21 @@ rm -rf "target/release/bundle/osx/yt-frontend.app"
 # 1. build the app bundle structure
 cargo bundle --release
 
+# Remove any extra bundles created by cargo-bundle bug
+rm -rf "target/release/bundle/osx/yt-frontend.app"
+
 # Ensure directories exist
 mkdir -p "$FRAMEWORKS_DIR"
 mkdir -p "$PLUGINS_DIR"
 mkdir -p "$SCANNER_DIR"
+mkdir -p "$MACOS_DIR"
+
+# 1b. Fix macOS executable missing/incorrect issue
+# cargo bundle can place the wrong binaries (e.g., bundle_linux) into MacOS/
+# or fail to place the right one when multiple binaries exist.
+echo "🔧 Fixing macOS executable contents..."
+rm -f "$MACOS_DIR"/*
+cp "target/release/yt-frontend" "$MACOS_DIR/yt-frontend"
 
 # 2. Bundle main binary dependencies
 echo "🔍 Bundling main binary dependencies..."
