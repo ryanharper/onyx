@@ -2673,12 +2673,6 @@ async fn resolve_stream_url(url: String, settings: AdvancedSettings) -> Result<(
     
     let mut cmd = tokio::process::Command::new(yt_binary);
     
-    // Fix for Flatpak SSL issues (only apply inside Flatpak sandbox)
-    if cfg!(target_os = "linux") && Path::new("/.flatpak-info").exists() {
-        cmd.env("SSL_CERT_FILE", "/etc/ssl/certs/ca-certificates.crt");
-        cmd.env("SSL_CERT_DIR", "/etc/ssl/certs");
-    }
-    
     // Use --print to get duration AND url in defined order
     cmd.arg("--print").arg("duration")
        .arg("--print").arg("urls") 
@@ -2850,15 +2844,7 @@ async fn fetch_thumbnail(url: String) -> Result<image::Handle, String> {
         "yt-dlp".to_string()
     };
     
-    let mut cmd = tokio::process::Command::new(cmd_str);
-    
-    // Fix for Flatpak SSL issues (only apply inside Flatpak sandbox)
-    if cfg!(target_os = "linux") && Path::new("/.flatpak-info").exists() {
-        cmd.env("SSL_CERT_FILE", "/etc/ssl/certs/ca-certificates.crt");
-        cmd.env("SSL_CERT_DIR", "/etc/ssl/certs");
-    }
-
-    let output = cmd
+    let output = tokio::process::Command::new(cmd_str)
         .arg("--print")
         .arg("thumbnail")
         .arg("--flat-playlist")
@@ -2887,15 +2873,7 @@ async fn fetch_video_info(url: String) -> Result<(String, f32), String> {
         "yt-dlp".to_string()
     };
     
-    let mut cmd = tokio::process::Command::new(cmd_str);
-    
-    // Fix for Flatpak SSL issues (only apply inside Flatpak sandbox)
-    if cfg!(target_os = "linux") && Path::new("/.flatpak-info").exists() {
-        cmd.env("SSL_CERT_FILE", "/etc/ssl/certs/ca-certificates.crt");
-        cmd.env("SSL_CERT_DIR", "/etc/ssl/certs");
-    }
-
-    let output = cmd
+    let output = tokio::process::Command::new(cmd_str)
         .arg("--print")
         .arg("%(title)s|||%(duration)s")
         .arg("--flat-playlist")
@@ -2935,12 +2913,6 @@ async fn download_queue_item(
     };
     
     let mut cmd = tokio::process::Command::new(&cmd_str);
-    
-    // Fix for Flatpak SSL issues (only apply inside Flatpak sandbox)
-    if cfg!(target_os = "linux") && Path::new("/.flatpak-info").exists() {
-        cmd.env("SSL_CERT_FILE", "/etc/ssl/certs/ca-certificates.crt");
-        cmd.env("SSL_CERT_DIR", "/etc/ssl/certs");
-    }
     
     
     // Always add bin/ to PATH so yt-dlp can find ffmpeg (needed for time range downloads)
@@ -3163,12 +3135,6 @@ fn create_download_stream(args: &DownloadArgs) -> impl iced::futures::Stream<Ite
                     };
                     
                     let mut cmd = tokio::process::Command::new(&cmd_str);
-                    
-                    // Fix for Flatpak SSL issues (only apply inside Flatpak sandbox)
-                    if cfg!(target_os = "linux") && Path::new("/.flatpak-info").exists() {
-                        cmd.env("SSL_CERT_FILE", "/etc/ssl/certs/ca-certificates.crt");
-                        cmd.env("SSL_CERT_DIR", "/etc/ssl/certs");
-                    }
                     
                     // Always add bin/ to PATH so yt-dlp can find ffmpeg (needed for time range downloads)
                     // Always add bin/ to PATH so yt-dlp can find ffmpeg (needed for time range downloads)

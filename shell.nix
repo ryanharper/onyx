@@ -25,7 +25,7 @@ pkgs.mkShell {
     xz
     cargo-bundle
     # flatpak # Use host flatpak for runtime management to avoid D-Bus/permission issues
-
+    flatpak-builder
     # JavaScript runtime for yt-dlp YouTube extraction
     deno
     # ffmpeg for video processing (needed for time range downloads)
