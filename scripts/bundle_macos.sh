@@ -14,10 +14,17 @@ echo "📦 Bundling macOS Application ($APP_NAME)..."
 
 # 0. Clean old bundles to avoid confusion
 rm -rf "$BUNDLE_DIR"
-rm -rf "target/release/bundle/osx/Onyx.app" # Clean potential old name
+rm -rf "target/release/bundle/osx/OnyxDownloader.app"
+rm -rf "target/release/bundle/osx/yt-frontend.app"
 
 # 1. build the app bundle structure
 cargo bundle --release --bin yt-frontend
+
+# Fix: cargo bundle --bin produces "yt-frontend.app" but we want "OnyxDownloader.app"
+if [ -d "target/release/bundle/osx/yt-frontend.app" ]; then
+    echo "🔄 Renaming yt-frontend.app to $APP_NAME.app..."
+    mv "target/release/bundle/osx/yt-frontend.app" "$BUNDLE_DIR"
+fi
 
 # Ensure directories exist
 mkdir -p "$FRAMEWORKS_DIR"
