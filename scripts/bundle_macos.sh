@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-APP_NAME="Onyx"
+APP_NAME="OnyxDownloader"
 BUNDLE_DIR="target/release/bundle/osx/$APP_NAME.app"
 CONTENTS_DIR="$BUNDLE_DIR/Contents"
 MACOS_DIR="$CONTENTS_DIR/MacOS"
@@ -428,7 +428,7 @@ if command -v create-dmg >/dev/null; then
     mkdir -p dist
     
     create-dmg \
-      --volname "Onyx_Installer" \
+      --volname "OnyxDownloader_Installer" \
       --volicon "icon.png" \
       --window-pos 200 120 \
       --window-size 800 400 \
