@@ -6,11 +6,11 @@ use std::process::Stdio;
 use regex::Regex;
 use std::time::Instant;
 use iced::futures::SinkExt;
-use directories::ProjectDirs;
 use lofty::prelude::*;
 use lofty::tag::Tag;
 use lofty::picture::{Picture, PictureType, MimeType};
 use lofty::config::WriteOptions;
+use directories::ProjectDirs;
 
 use iced_video_player::Video;
 
@@ -364,7 +364,7 @@ impl OnyxApp {
                         duration: None,
                         thumbnail: None,
                         media_type: MediaType::Video,
-                        output_format: OutputFormat::MP4,
+                        output_format: OutputFormat::Mp4,
                         time_range: None,
                         crop_selection: None,
                         status: QueueStatus::Fetching,
@@ -492,7 +492,8 @@ impl OnyxApp {
                 // Start downloads for all ready items (max 20 parallel)
                 let ready_items: Vec<_> = self.download_queue.iter()
                     .filter(|item| matches!(item.status, QueueStatus::Ready))
-                    .take(20).cloned()
+                    .take(20)
+                    .cloned()
                     .collect();
                 
                 let commands: Vec<_> = ready_items.iter().map(|item| {
@@ -664,7 +665,7 @@ impl OnyxApp {
                     duration: parse_duration(&video.duration),
                     thumbnail: self.video_thumbnails.get(&video.id).cloned(),
                     media_type: MediaType::Video,
-                    output_format: OutputFormat::MP4,
+                    output_format: OutputFormat::Mp4,
                     time_range: None,
                     crop_selection: None,
                     status: QueueStatus::Ready,
@@ -889,7 +890,7 @@ impl OnyxApp {
                     duration: Some(self.video_player_duration),
                     thumbnail: None,
                     media_type: MediaType::Video,
-                    output_format: OutputFormat::MP4,
+                    output_format: OutputFormat::Mp4,
                     time_range: Some(TimeRange {
                         start_seconds: self.trimmer_start,
                         end_seconds: self.trimmer_end,
@@ -2664,10 +2665,20 @@ async fn resolve_stream_url(url: String, settings: AdvancedSettings) -> Result<(
     let local_yt = bin_dir.join(if cfg!(target_os = "windows") { "yt-dlp.exe" } else { "yt-dlp" });
     let yt_binary = if local_yt.exists() { 
         local_yt.to_string_lossy().to_string() 
-    } else if cfg!(target_os = "windows") { "yt-dlp.exe".to_string() } else { "yt-dlp".to_string() };
+    } else if cfg!(target_os = "windows") {
+        "yt-dlp.exe".to_string()
+    } else {
+        "yt-dlp".to_string()
+    };
     
     let mut cmd = tokio::process::Command::new(yt_binary);
     
+    // Fix for Flatpak SSL issues (only apply inside Flatpak sandbox)
+    if cfg!(target_os = "linux") && Path::new("/.flatpak-info").exists() {
+        cmd.env("SSL_CERT_FILE", "/etc/ssl/certs/ca-certificates.crt");
+        cmd.env("SSL_CERT_DIR", "/etc/ssl/certs");
+    }
+
     // Use --print to get duration AND url in defined order
     cmd.arg("--print").arg("duration")
        .arg("--print").arg("urls") 
@@ -2833,9 +2844,21 @@ async fn fetch_thumbnail(url: String) -> Result<image::Handle, String> {
     let local_yt = bin_dir.join(if cfg!(target_os = "windows") { "yt-dlp.exe" } else { "yt-dlp" });
     let cmd_str = if local_yt.exists() {
         local_yt.to_string_lossy().to_string()
-    } else if cfg!(target_os = "windows") { "yt-dlp.exe".to_string() } else { "yt-dlp".to_string() };
+    } else if cfg!(target_os = "windows") {
+        "yt-dlp.exe".to_string()
+    } else {
+        "yt-dlp".to_string()
+    };
     
-    let output = tokio::process::Command::new(cmd_str)
+    let mut cmd = tokio::process::Command::new(cmd_str);
+
+    // Fix for Flatpak SSL issues (only apply inside Flatpak sandbox)
+    if cfg!(target_os = "linux") && Path::new("/.flatpak-info").exists() {
+        cmd.env("SSL_CERT_FILE", "/etc/ssl/certs/ca-certificates.crt");
+        cmd.env("SSL_CERT_DIR", "/etc/ssl/certs");
+    }
+
+    let output = cmd
         .arg("--print")
         .arg("thumbnail")
         .arg("--flat-playlist")
@@ -2858,9 +2881,21 @@ async fn fetch_video_info(url: String) -> Result<(String, f32), String> {
     let local_yt = bin_dir.join(if cfg!(target_os = "windows") { "yt-dlp.exe" } else { "yt-dlp" });
     let cmd_str = if local_yt.exists() {
         local_yt.to_string_lossy().to_string()
-    } else if cfg!(target_os = "windows") { "yt-dlp.exe".to_string() } else { "yt-dlp".to_string() };
+    } else if cfg!(target_os = "windows") {
+        "yt-dlp.exe".to_string()
+    } else {
+        "yt-dlp".to_string()
+    };
     
-    let output = tokio::process::Command::new(cmd_str)
+    let mut cmd = tokio::process::Command::new(cmd_str);
+
+    // Fix for Flatpak SSL issues (only apply inside Flatpak sandbox)
+    if cfg!(target_os = "linux") && Path::new("/.flatpak-info").exists() {
+        cmd.env("SSL_CERT_FILE", "/etc/ssl/certs/ca-certificates.crt");
+        cmd.env("SSL_CERT_DIR", "/etc/ssl/certs");
+    }
+
+    let output = cmd
         .arg("--print")
         .arg("%(title)s|||%(duration)s")
         .arg("--flat-playlist")
@@ -2901,6 +2936,12 @@ async fn download_queue_item(
     
     let mut cmd = tokio::process::Command::new(&cmd_str);
     
+    // Fix for Flatpak SSL issues (only apply inside Flatpak sandbox)
+    if cfg!(target_os = "linux") && Path::new("/.flatpak-info").exists() {
+        cmd.env("SSL_CERT_FILE", "/etc/ssl/certs/ca-certificates.crt");
+        cmd.env("SSL_CERT_DIR", "/etc/ssl/certs");
+    }
+
     
     // Always add bin/ to PATH so yt-dlp can find ffmpeg (needed for time range downloads)
     // Always add bin/ to PATH so yt-dlp can find ffmpeg (needed for time range downloads)
@@ -2924,7 +2965,7 @@ async fn download_queue_item(
         MediaType::Video => {
             cmd.arg("-f").arg("bestvideo+bestaudio/best");
             let format_str = match item.output_format {
-                OutputFormat::MP4 => "mp4",
+                OutputFormat::Mp4 => "mp4",
                 OutputFormat::Mkv => "mkv",
                 OutputFormat::Webm => "webm",
                 _ => "mp4",
@@ -2934,8 +2975,8 @@ async fn download_queue_item(
         MediaType::Audio => {
             cmd.arg("-x");
             let format_str = match item.output_format {
-                OutputFormat::MP3 => "mp3",
-                OutputFormat::M4A => "m4a",
+                OutputFormat::Mp3 => "mp3",
+                OutputFormat::M4a => "m4a",
                 OutputFormat::Opus => "opus",
                 OutputFormat::Flac => "flac",
                 _ => "mp3",
@@ -2982,7 +3023,11 @@ async fn download_queue_item(
 
         let ffmpeg_bin = if use_local_ffmpeg {
              get_bin_dir().join(if cfg!(target_os = "windows") { "ffmpeg.exe" } else { "ffmpeg" }).to_string_lossy().to_string()
-        } else if cfg!(target_os = "windows") { "ffmpeg.exe".to_string() } else { "ffmpeg".to_string() };
+        } else if cfg!(target_os = "windows") {
+            "ffmpeg.exe".to_string()
+        } else {
+            "ffmpeg".to_string()
+        };
         
         let vcodec = match item.output_format {
             OutputFormat::Webm => "libvpx-vp9",
@@ -3098,6 +3143,7 @@ fn create_download_stream(args: &DownloadArgs) -> impl iced::futures::Stream<Ite
     iced::stream::channel(100, move |mut output: iced::futures::channel::mpsc::Sender<Message>| async move {
         let mut state = DownloadState::Ready(url, folder, format, settings, time_range);
 
+        // Pre-compile regexes for progress parsing
         let re_percent = Regex::new(r"(\d+\.?\d*)%").unwrap();
         let re_size = Regex::new(r"of\s+([\d.]+\s*[KMG]i?B)").unwrap();
         let re_speed = Regex::new(r"at\s+([\d.]+\s*[KMG]i?B/s)").unwrap();
@@ -3118,6 +3164,12 @@ fn create_download_stream(args: &DownloadArgs) -> impl iced::futures::Stream<Ite
                     
                     let mut cmd = tokio::process::Command::new(&cmd_str);
                     
+                    // Fix for Flatpak SSL issues (only apply inside Flatpak sandbox)
+                    if cfg!(target_os = "linux") && Path::new("/.flatpak-info").exists() {
+                        cmd.env("SSL_CERT_FILE", "/etc/ssl/certs/ca-certificates.crt");
+                        cmd.env("SSL_CERT_DIR", "/etc/ssl/certs");
+                    }
+
                     // Always add bin/ to PATH so yt-dlp can find ffmpeg (needed for time range downloads)
                     // Always add bin/ to PATH so yt-dlp can find ffmpeg (needed for time range downloads)
                     let current_path = std::env::var("PATH").unwrap_or_default();
@@ -3686,8 +3738,6 @@ impl canvas::Program<Message> for EnhancedETA {
 // STYLES
 // ============================================================================
 
-#[allow(dead_code)]
-struct MainBackground;
 // MainBackground style - use inline styling in iced 0.14
 // MainBackground style - use inline styling in iced 0.14
 fn main_background_style(app_theme: AppTheme) -> container::Style {
@@ -3701,8 +3751,6 @@ fn main_background_style(app_theme: AppTheme) -> container::Style {
     }
 }
 
-#[allow(dead_code)]
-struct CardStyle;
 // CardStyle - use inline styling in iced 0.14
 fn card_style(app_theme: AppTheme) -> container::Style {
     let (bg, border) = match app_theme {
@@ -3732,8 +3780,6 @@ fn card_style(app_theme: AppTheme) -> container::Style {
     }
 }
 
-#[allow(dead_code)]
-struct QueueItemStyle;
 // QueueItemStyle - use inline styling in iced 0.14
 #[allow(dead_code)]
 fn queue_item_style(_theme: &Theme) -> container::Style {
@@ -3748,25 +3794,8 @@ fn queue_item_style(_theme: &Theme) -> container::Style {
     }
 }
 
-#[allow(dead_code)]
-struct OnyxInput;
-
-#[allow(dead_code)]
-struct OnyxPrimaryButton { #[allow(dead_code)] active: bool }
-
-#[allow(dead_code)]
-struct OnyxSecondaryButton;
-
-#[allow(dead_code)]
-struct OnyxPickList;
-
-#[allow(dead_code)]
-struct OnyxOverlay;
-
 // Start PO Token server for YouTube authentication
 async fn start_po_token_server() {
-
-    
     // Find binary using get_bin_dir helper or fallback
     let bin_path = get_bin_dir().join(if cfg!(target_os = "windows") { "bgutil-pot.exe" } else { "bgutil-pot" });
 
@@ -3792,27 +3821,6 @@ async fn start_po_token_server() {
 // ============================================================================
 // VIDEO PLAYER STYLES
 // ============================================================================
-
-#[allow(dead_code)]
-struct DarkOverlay;
-
-#[allow(dead_code)]
-struct PlayerModalStyle;
-
-#[allow(dead_code)]
-struct VideoAreaStyle;
-
-#[allow(dead_code)]
-struct TimelineBackgroundStyle;
-
-#[allow(dead_code)]
-struct SelectionOverlayStyle;
-
-#[allow(dead_code)]
-struct TrimHandleStyle;
-
-#[allow(dead_code)]
-struct TrimSliderStyle;
 
 
 // ============================================================================
@@ -3950,39 +3958,41 @@ impl canvas::Program<Message> for TimelineTrimmer {
              Size::new(handle_width, height)
         );
         
-        if let iced::Event::Mouse(mouse_event) = event { match mouse_event {
-             mouse::Event::ButtonPressed(mouse::Button::Left) => {
-                  if start_handle_rect.contains(cursor_position) {
-                       return Some(canvas::Action::publish(Message::TrimHandlePressed(TrimHandle::Start, cursor_position.x)));
-                  } else if end_handle_rect.contains(cursor_position) {
-                       return Some(canvas::Action::publish(Message::TrimHandlePressed(TrimHandle::End, cursor_position.x)));
-                  } else if cursor_position.x > start_x && cursor_position.x < end_x {
-                       return Some(canvas::Action::publish(Message::TrimHandlePressed(TrimHandle::Selection, cursor_position.x)));
-                  }
-             }
-             mouse::Event::ButtonReleased(mouse::Button::Left) => {
-                  if self.dragging.is_some() {
-                       return Some(canvas::Action::publish(Message::TrimHandleReleased));
-                  }
-             }
-             mouse::Event::CursorMoved { .. } => {
-                  if self.dragging.is_some() {
-                       return Some(canvas::Action::publish(Message::TrimHandleDragged(cursor_position.x)));
-                  } else {
-                       // Hover detection
-                       if start_handle_rect.contains(cursor_position) {
-                            return Some(canvas::Action::publish(Message::TrimHandleHover(Some(TrimHandle::Start))));
-                       } else if end_handle_rect.contains(cursor_position) {
-                            return Some(canvas::Action::publish(Message::TrimHandleHover(Some(TrimHandle::End))));
-                       } else if cursor_position.x > start_x && cursor_position.x < end_x {
-                            return Some(canvas::Action::publish(Message::TrimHandleHover(Some(TrimHandle::Selection))));
-                       } else {
-                            return Some(canvas::Action::publish(Message::TrimHandleHover(None)));
-                       }
-                  }
-             }
-             _ => {}
-        } }
+        if let iced::Event::Mouse(mouse_event) = event {
+            match mouse_event {
+                 mouse::Event::ButtonPressed(mouse::Button::Left) => {
+                      if start_handle_rect.contains(cursor_position) {
+                           return Some(canvas::Action::publish(Message::TrimHandlePressed(TrimHandle::Start, cursor_position.x)));
+                      } else if end_handle_rect.contains(cursor_position) {
+                           return Some(canvas::Action::publish(Message::TrimHandlePressed(TrimHandle::End, cursor_position.x)));
+                      } else if cursor_position.x > start_x && cursor_position.x < end_x {
+                           return Some(canvas::Action::publish(Message::TrimHandlePressed(TrimHandle::Selection, cursor_position.x)));
+                      }
+                 }
+                 mouse::Event::ButtonReleased(mouse::Button::Left) => {
+                      if self.dragging.is_some() {
+                           return Some(canvas::Action::publish(Message::TrimHandleReleased));
+                      }
+                 }
+                 mouse::Event::CursorMoved { .. } => {
+                      if self.dragging.is_some() {
+                           return Some(canvas::Action::publish(Message::TrimHandleDragged(cursor_position.x)));
+                      } else {
+                           // Hover detection
+                           if start_handle_rect.contains(cursor_position) {
+                                return Some(canvas::Action::publish(Message::TrimHandleHover(Some(TrimHandle::Start))));
+                           } else if end_handle_rect.contains(cursor_position) {
+                                return Some(canvas::Action::publish(Message::TrimHandleHover(Some(TrimHandle::End))));
+                           } else if cursor_position.x > start_x && cursor_position.x < end_x {
+                                return Some(canvas::Action::publish(Message::TrimHandleHover(Some(TrimHandle::Selection))));
+                           } else {
+                                return Some(canvas::Action::publish(Message::TrimHandleHover(None)));
+                           }
+                      }
+                 }
+                 _ => {}
+            }
+        }
         None
     }
 }
@@ -3991,7 +4001,6 @@ impl canvas::Program<Message> for TimelineTrimmer {
 // ANIMATED TAB BAR
 // ============================================================================
 
-#[allow(dead_code)]
 struct AnimatedTabBar {
     #[allow(dead_code)]
     active_tab: Tab,
@@ -4205,7 +4214,6 @@ fn glass_danger_style(_theme: &iced::Theme, status: iced::widget::button::Status
 // CROP OVERLAY
 // ============================================================================
 
-#[allow(dead_code)]
 struct CropOverlay {
     selection: Option<CropRect>,
     #[allow(dead_code)]

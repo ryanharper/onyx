@@ -11,7 +11,7 @@ We perform regular security audits of our dependencies using `cargo-audit`.
 ### Summary Status
 ![Security Status](https://img.shields.io/badge/Security-Scanned-success?style=for-the-badge&logo=shield)
 ![Vulnerabilities](https://img.shields.io/badge/Vulnerabilities-0%20Critical-success?style=for-the-badge)
-![Warnings](https://img.shields.io/badge/Warnings-6%20Unmaintained-yellow?style=for-the-badge)
+![Warnings](https://img.shields.io/badge/Warnings-2%20Unmaintained-yellow?style=for-the-badge)
 
 ### Audit History & Live Results
 Security scans are performed on every commit. You can view the live status and detailed history in our [GitHub Actions pipeline](https://github.com/ryanharper/onyx/actions).
@@ -19,9 +19,8 @@ Security scans are performed on every commit. You can view the live status and d
 #### Known Advisories (Last Reviewed: 2026-02-18)
 | Crate | Issue | Mitigation |
 | :--- | :--- | :--- |
-| `atk-sys`, `gdk-sys`, `gtk-sys` | Unmaintained (GTK3) | Inherited from `rfd`. Non-critical for desktop downloader. |
 | `bincode` | Unmaintained | Used only in `iced` debugging tools. |
-| `paste`, `rustls-pemfile` | Unmaintained | Deep dependencies; no known vulnerabilities. |
+| `paste` | Unmaintained | Deep dependency; no known vulnerabilities. |
 
 *Note: "Unmaintained" warnings refer to crates that are no longer receiving active updates but do not currently have known exploitable vulnerabilities in our project.*
 
@@ -42,7 +41,7 @@ A full Bill of Materials is maintained in CycloneDX format.
 | `iced` | 0.14.0 | MIT | GUI Framework |
 | `tokio` | 1.49.0 | MIT | Async Runtime |
 | `gstreamer` | 0.23.7 | MIT/Apache-2.0 | Media Backbone |
-| `reqwest` | 0.11.27 | MIT/Apache-2.0 | HTTP Client |
+| `reqwest` | 0.12.28 | MIT/Apache-2.0 | HTTP Client |
 | `serde` | 1.0.228 | MIT/Apache-2.0 | Serialization |
 
 ---

@@ -56,12 +56,12 @@ impl std::fmt::Display for MediaType {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum OutputFormat {
     // Video
-    MP4,
+    Mp4,
     Mkv,
     Webm,
     // Audio
-    MP3,
-    M4A,
+    Mp3,
+    M4a,
     Opus,
     Flac,
 }
@@ -69,15 +69,15 @@ pub enum OutputFormat {
 impl OutputFormat {
     pub fn for_media_type(media_type: MediaType) -> &'static [OutputFormat] {
         match media_type {
-            MediaType::Video => &[OutputFormat::MP4, OutputFormat::Mkv, OutputFormat::Webm],
-            MediaType::Audio => &[OutputFormat::MP3, OutputFormat::M4A, OutputFormat::Opus, OutputFormat::Flac],
+            MediaType::Video => &[OutputFormat::Mp4, OutputFormat::Mkv, OutputFormat::Webm],
+            MediaType::Audio => &[OutputFormat::Mp3, OutputFormat::M4a, OutputFormat::Opus, OutputFormat::Flac],
         }
     }
     
     pub fn default_for(media_type: MediaType) -> Self {
         match media_type {
-            MediaType::Video => OutputFormat::MP4,
-            MediaType::Audio => OutputFormat::MP3,
+            MediaType::Video => OutputFormat::Mp4,
+            MediaType::Audio => OutputFormat::Mp3,
         }
     }
 }
@@ -85,11 +85,11 @@ impl OutputFormat {
 impl std::fmt::Display for OutputFormat {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            OutputFormat::MP4 => write!(f, "MP4"),
+            OutputFormat::Mp4 => write!(f, "MP4"),
             OutputFormat::Mkv => write!(f, "MKV"),
             OutputFormat::Webm => write!(f, "WEBM"),
-            OutputFormat::MP3 => write!(f, "MP3"),
-            OutputFormat::M4A => write!(f, "M4A"),
+            OutputFormat::Mp3 => write!(f, "MP3"),
+            OutputFormat::M4a => write!(f, "M4A"),
             OutputFormat::Opus => write!(f, "OPUS"),
             OutputFormat::Flac => write!(f, "FLAC"),
         }
