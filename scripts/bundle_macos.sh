@@ -12,8 +12,12 @@ SCANNER_DIR="$RESOURCES_DIR/libexec/gstreamer-1.0"
 
 echo "📦 Bundling macOS Application ($APP_NAME)..."
 
+# 0. Clean old bundles to avoid confusion
+rm -rf "$BUNDLE_DIR"
+rm -rf "target/release/bundle/osx/Onyx.app" # Clean potential old name
+
 # 1. build the app bundle structure
-cargo bundle --release
+cargo bundle --release --bin yt-frontend
 
 # Ensure directories exist
 mkdir -p "$FRAMEWORKS_DIR"
