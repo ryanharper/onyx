@@ -18,13 +18,7 @@ rm -rf "target/release/bundle/osx/OnyxDownloader.app"
 rm -rf "target/release/bundle/osx/yt-frontend.app"
 
 # 1. build the app bundle structure
-cargo bundle --release --bin yt-frontend
-
-# Fix: cargo bundle --bin produces "yt-frontend.app" but we want "OnyxDownloader.app"
-if [ -d "target/release/bundle/osx/yt-frontend.app" ]; then
-    echo "🔄 Renaming yt-frontend.app to $APP_NAME.app..."
-    mv "target/release/bundle/osx/yt-frontend.app" "$BUNDLE_DIR"
-fi
+cargo bundle --release
 
 # Ensure directories exist
 mkdir -p "$FRAMEWORKS_DIR"
@@ -355,15 +349,8 @@ EOF
 
 chmod +x "$LAUNCHER"
 
-# 7. Update Info.plist to point to launcher and match bundle name
+# 7. Update Info.plist to point to launcher
 /usr/libexec/PlistBuddy -c "Set :CFBundleExecutable onyx-launcher" "$CONTENTS_DIR/Info.plist"
-
-# Correct metadata to match bundle name and identifier
-/usr/libexec/PlistBuddy -c "Set :CFBundleName $APP_NAME" "$CONTENTS_DIR/Info.plist" || /usr/libexec/PlistBuddy -c "Add :CFBundleName string $APP_NAME" "$CONTENTS_DIR/Info.plist"
-/usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName $APP_NAME" "$CONTENTS_DIR/Info.plist" || /usr/libexec/PlistBuddy -c "Add :CFBundleDisplayName string $APP_NAME" "$CONTENTS_DIR/Info.plist"
-
-# Ensure Identifier is consistent
-/usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.onyx.yt-frontend" "$CONTENTS_DIR/Info.plist" || /usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string com.onyx.yt-frontend" "$CONTENTS_DIR/Info.plist"
 # 7b. FINAL SIGNING (Must be last modification)
 echo "🔏 Re-signing binaries (manual recursive) with hardened runtime..."
 

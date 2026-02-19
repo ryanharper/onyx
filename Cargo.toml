@@ -2,6 +2,7 @@
 name = "yt-frontend"
 version = "0.1.1-alpha"
 edition = "2021"
+default-run = "yt-frontend"
 
 [dependencies]
 iced = { version = "0.14", features = ["tokio", "debug", "advanced", "svg", "canvas", "image"] }
