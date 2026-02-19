@@ -427,17 +427,34 @@ if command -v create-dmg >/dev/null; then
     # Create dist folder to hold just the DMG
     mkdir -p dist
     
-    create-dmg \
-      --volname "OnyxDownloader_Installer" \
-      --volicon "icon.png" \
-      --window-pos 200 120 \
-      --window-size 800 400 \
-      --icon-size 100 \
-      --icon "$APP_NAME.app" 200 190 \
-      --hide-extension "$APP_NAME.app" \
-      --app-drop-link 600 185 \
-      "dist/$DMG_NAME" \
-      "$BUNDLE_DIR"
+    # Check for SetFile (needed for custom volume icon)
+    if command -v SetFile >/dev/null && [ -f "icon.png" ]; then
+        echo "🎨 Found icon.png and SetFile. Using custom volume icon."
+        create-dmg \
+          --volname "OnyxDownloader_Installer" \
+          --volicon "icon.png" \
+          --window-pos 200 120 \
+          --window-size 800 400 \
+          --icon-size 100 \
+          --icon "$APP_NAME.app" 200 190 \
+          --hide-extension "$APP_NAME.app" \
+          --app-drop-link 600 185 \
+          "dist/$DMG_NAME" \
+          "$BUNDLE_DIR"
+    else
+        echo "⚠️  SetFile not found or icon.png missing. Skipping custom volume icon."
+        echo "   (SetFile is part of Xcode Command Line Tools)"
+        create-dmg \
+          --volname "OnyxDownloader_Installer" \
+          --window-pos 200 120 \
+          --window-size 800 400 \
+          --icon-size 100 \
+          --icon "$APP_NAME.app" 200 190 \
+          --hide-extension "$APP_NAME.app" \
+          --app-drop-link 600 185 \
+          "dist/$DMG_NAME" \
+          "$BUNDLE_DIR"
+    fi
       
     echo "🎉 Distribution ready at: dist/$DMG_NAME"
 else
