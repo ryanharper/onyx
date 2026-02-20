@@ -138,6 +138,7 @@ pub enum AppTheme {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub enum AppState {
     Idle,
     CheckingDependencies,
