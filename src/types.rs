@@ -154,13 +154,6 @@ pub enum TrimHandle {
     Selection, // For dragging the entire selection
 }
 
-#[allow(dead_code)]
-#[derive(Debug, Clone, PartialEq)]
-pub struct TrimHandleStyle;
-
-#[allow(dead_code)]
-#[derive(Debug, Clone, PartialEq)]
-pub struct TrimSliderStyle;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BrowseMode {

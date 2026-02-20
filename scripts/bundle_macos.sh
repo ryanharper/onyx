@@ -12,13 +12,29 @@ SCANNER_DIR="$RESOURCES_DIR/libexec/gstreamer-1.0"
 
 echo "📦 Bundling macOS Application ($APP_NAME)..."
 
+# 0. Clean old bundles to avoid confusion
+rm -rf "$BUNDLE_DIR"
+rm -rf "target/release/bundle/osx/OnyxDownloader.app"
+rm -rf "target/release/bundle/osx/yt-frontend.app"
+
 # 1. build the app bundle structure
 cargo bundle --release
+
+# Remove any extra bundles created by cargo-bundle bug
+rm -rf "target/release/bundle/osx/yt-frontend.app"
 
 # Ensure directories exist
 mkdir -p "$FRAMEWORKS_DIR"
 mkdir -p "$PLUGINS_DIR"
 mkdir -p "$SCANNER_DIR"
+mkdir -p "$MACOS_DIR"
+
+# 1b. Fix macOS executable missing/incorrect issue
+# cargo bundle can place the wrong binaries (e.g., bundle_linux) into MacOS/
+# or fail to place the right one when multiple binaries exist.
+echo "🔧 Fixing macOS executable contents..."
+rm -f "$MACOS_DIR"/*
+cp "target/release/yt-frontend" "$MACOS_DIR/yt-frontend"
 
 # 2. Bundle main binary dependencies
 echo "🔍 Bundling main binary dependencies..."
@@ -313,7 +329,7 @@ export GST_PLUGIN_SYSTEM_PATH="\$RESOURCES/lib/gstreamer-1.0"
 export GST_PLUGIN_SCANNER="\$RESOURCES/libexec/gstreamer-1.0/gst-plugin-scanner"
 export GTK_PATH="\$RESOURCES/lib/gtk-3.0"
 export GST_DEBUG="*:2,soup:5,osxaudio:5,videodecoder:5,qtdemux:5"
-export GST_DEBUG_FILE="$HOME/Desktop/onyx-gst-debug.log"
+export GST_DEBUG_FILE="/tmp/onyx-gst-debug.log"
 
 # Fix SSL/TLS backend for libsoup (must avail glib-networking from Nix store)
 export GIO_EXTRA_MODULES="$GIO_EXTRA_MODULES"
@@ -323,6 +339,7 @@ export GIO_EXTRA_MODULES="$GIO_EXTRA_MODULES"
 export SSL_CERT_FILE="/etc/ssl/cert.pem"
 export GTLS_SYSTEM_CA_FILE="/etc/ssl/cert.pem"
 export CURL_CA_BUNDLE="/etc/ssl/cert.pem"
+export NIX_SSL_CERT_FILE="/etc/ssl/cert.pem"
 
 
 echo "Please check $GST_DEBUG_FILE for GStreamer logs"
@@ -346,7 +363,6 @@ chmod +x "$LAUNCHER"
 
 # 7. Update Info.plist to point to launcher
 /usr/libexec/PlistBuddy -c "Set :CFBundleExecutable onyx-launcher" "$CONTENTS_DIR/Info.plist"
-
 # 7b. FINAL SIGNING (Must be last modification)
 echo "🔏 Re-signing binaries (manual recursive) with hardened runtime..."
 
